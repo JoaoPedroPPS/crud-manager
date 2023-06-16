@@ -13,6 +13,7 @@ public class Department {
 	
 	public Department(int id) {
 		this.id = id;
+		
 	}
 
 	public String getNome() {

@@ -43,6 +43,7 @@
 		        <table class="table table-striped table-hover" cellspacing="0" cellpadding="0">
 		            <thead>
 		                <tr>
+		                	<th>Id</th>
 		                    <th>Nome</th>
 		                    <th>Cargo</th>
 		                    <th>Início</th>
@@ -55,6 +56,7 @@
 		            <tbody>
 		            	<c:forEach var="comp" items="${companies}">
 							<tr>
+								<td>${comp.getId()}</td>
 			                    <td>${comp.getName()}</td>
 			                    <td>${comp.getRole()}</td>
 			                    <td>${comp.getStart()}</td>

@@ -15,17 +15,21 @@ public class MySQLDepartmentDAO implements DepartmentDAO {
 
         DBHandler db = new DBHandler();
 
-        String sqlInsert = "INSERT INTO Departments VALUES "
-                + " (?, ?, ?, ?, ?);";
+        String sqlInsert = "INSERT INTO `crud_manager`.`departments` (`name`, `manager`, `companies_id`, `budget`) VALUES"
+                + " (?, ?, ?, ?);";
 
         db.prepareStatement(sqlInsert);
-        db.setInt(1, department.getId());
-        db.setString(2, department.getNome());
-        db.setString(3, department.getManager());
-        db.setInt(4, department.getCompanyId());
-        db.setFloat(5, department.getBudget());
+        
+        db.setString(1, department.getNome());
+        db.setString(2, department.getManager());
+        db.setInt(3, department.getCompanyId());
+        db.setFloat(4, department.getBudget());
 
         return db.executeUpdate() > 0;
+        
+        
+        
+        
     }
 
     @Override
@@ -112,7 +116,7 @@ public class MySQLDepartmentDAO implements DepartmentDAO {
     }
 
     private Department createDepartment(DBHandler db) throws ModelException {
-        Department department = new Department();
+        Department department = new Department(db.getInt("id"));
         department.setNome(db.getString("name"));
         department.setManager(db.getString("manager"));
         department.setBudget(db.getFloat("budget"));

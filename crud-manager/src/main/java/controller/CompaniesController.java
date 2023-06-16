@@ -2,6 +2,8 @@ package controller;
 
 import java.io.IOException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import jakarta.servlet.ServletException;
@@ -16,8 +18,9 @@ import model.dao.CompanyDAO;
 import model.dao.DAOFactory;
 
 @WebServlet(urlPatterns = {"/companies", "/company/form", 
-		"/company/insert", "/company/delete"})
+		"/company/insert","/company/update", "/company/delete"})
 public class CompaniesController extends HttpServlet{
+	private static final long serialVersionUID = 1L;
 	
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
@@ -33,7 +36,11 @@ public class CompaniesController extends HttpServlet{
 			break;
 		}
 		case "/crud-manager/company/update": {
-			
+			CommonsController.listUsers(req);
+			Company c = loadCompany(req);
+			req.setAttribute("company", c);
+			req.setAttribute("action", "update");
+			ControllerUtil.forward(req, resp, "/form-company.jsp");
 			break;
 		}
 		default:
@@ -43,6 +50,62 @@ public class CompaniesController extends HttpServlet{
 		
 			ControllerUtil.forward(req, resp, "/companies.jsp");
 		}
+	}
+	
+	@Override
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
+			throws ServletException, IOException {
+		
+		String action = req.getRequestURI();
+		
+		 if (action == null || action.equals("")) {
+			 ControllerUtil.forward(req, resp, "/index.jsp");
+			 return;
+			 	        
+			 }
+		
+		switch (action) {
+		case "/crud-manager/company/insert": {
+			insertCompany(req, resp);			
+			break;
+		}
+		case "/crud-manager/company/update": {
+			updateCompany(req, resp);
+			break;
+		}
+		case "/crud-manager/company/delete" :{
+			
+			deleteCompany(req, resp);
+			
+			break;
+		}
+		default:
+			System.out.println("URL inválida " + action);
+		}
+		
+		ControllerUtil.redirect(resp, req.getContextPath() + "/companies");
+	}
+	
+	private Company loadCompany(HttpServletRequest req) {
+		String companyIdParameter = req.getParameter("companyId");
+		
+		int companyId = Integer.parseInt(companyIdParameter);
+		
+		CompanyDAO dao = DAOFactory.createDAO(CompanyDAO.class);
+		
+		try {
+			Company company = dao.findById(companyId);
+			
+			if (company == null)
+				throw new ModelException("Empresa não encontrada para alteração");
+			
+			return company;
+		} catch (ModelException e) {
+			e.printStackTrace();
+			ControllerUtil.errorMessage(req, e.getMessage());
+		}
+		
+		return null;
 	}
 	
 	private void listCompanies(HttpServletRequest req) {
@@ -59,29 +122,80 @@ public class CompaniesController extends HttpServlet{
 		if (companies != null)
 			req.setAttribute("companies", companies);
 	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
-			throws ServletException, IOException {
+	
+	private void insertCompany(HttpServletRequest req, HttpServletResponse resp) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		
-		String action = req.getRequestURI();
+		String companyName = req.getParameter("name");
+		String companyRole = req.getParameter("role");
+		String companyStart = req.getParameter("start");
+		String companyEnd = req.getParameter("end");
+		Integer userId = Integer.parseInt(req.getParameter("user"));
 		
-		switch (action) {
-		case "/crud-manager/company/insert": {
-			insertCompany(req, resp);			
-			break;
-		}
-		case "/crud-manager/company/delete" :{
+		try {
+			Company company = new Company();
+			company.setName(companyName);
+			company.setRole(companyRole);
+			company.setStart(sdf.parse(companyStart));
 			
-			deleteCompany(req, resp);
+			if (!companyEnd.isEmpty()) {
+				company.setEnd(sdf.parse(companyEnd));
+			}
 			
-			break;
+			company.setUser(new User(userId));
+			
+			CompanyDAO dao = DAOFactory.createDAO(CompanyDAO.class);
+			
+			if (dao.save(company)) {
+				ControllerUtil.sucessMessage(req, "Empresa '" + company.getName() + "' salva com sucesso.");
+			}
+			else {
+				ControllerUtil.errorMessage(req, "Empresa '" + company.getName() + "' não pode ser salva.");
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+			ControllerUtil.errorMessage(req, "Data inválida. Certifique-se de que o formato é dd/mm/aaaa.");
+		} catch (ModelException e) {
+			e.printStackTrace();
+			ControllerUtil.errorMessage(req, e.getMessage());
 		}
-		default:
-			System.out.println("URL inválida " + action);
-		}
+	}
+	
+	private void updateCompany(HttpServletRequest req, HttpServletResponse resp) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		
-		ControllerUtil.redirect(resp, req.getContextPath() + "/companies");
+		String companyName = req.getParameter("name");
+		String companyRole = req.getParameter("role");
+		String companyStart = req.getParameter("start");
+		String companyEnd = req.getParameter("end");
+		Integer userId = Integer.parseInt(req.getParameter("user"));
+		
+		try {
+			Company company = loadCompany(req);
+			company.setName(companyName);
+			company.setRole(companyRole);
+			company.setStart(sdf.parse(companyStart));
+			
+			if (!companyEnd.isEmpty()) {
+				company.setEnd(sdf.parse(companyEnd));
+			}
+			
+			company.setUser(new User(userId));
+			
+			CompanyDAO dao = DAOFactory.createDAO(CompanyDAO.class);
+			
+			if (dao.update(company)) {
+				ControllerUtil.sucessMessage(req, "Empresa '" + company.getName() + "' atualizada com sucesso.");
+			}
+			else {
+				ControllerUtil.errorMessage(req, "Empresa '" + company.getName() + "' não pode ser atualizada.");
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (ModelException e) {
+			e.printStackTrace();
+			ControllerUtil.errorMessage(req, e.getMessage());
+		}		
 	}
 
 	private void deleteCompany(HttpServletRequest req, HttpServletResponse resp) {
@@ -117,36 +231,6 @@ public class CompaniesController extends HttpServlet{
 		}
 	}
 
-	private void insertCompany(HttpServletRequest req, HttpServletResponse resp) {
-		String companyName = req.getParameter("name");
-		String role = req.getParameter("role");
-		String start = req.getParameter("start");
-		String end = req.getParameter("end");
-		Integer userId = Integer.parseInt(req.getParameter("user"));
-		
-		Company comp = new Company();
-		comp.setName(companyName);
-		comp.setRole(role);
-		comp.setStart(ControllerUtil.formatDate(start));
-		comp.setEnd(ControllerUtil.formatDate(end));
-		comp.setUser(new User(userId));
-		
-		CompanyDAO dao = DAOFactory.createDAO(CompanyDAO.class);
 	
-		try {
-			if (dao.save(comp)) {
-				ControllerUtil.sucessMessage(req, "Empresa '" + comp.getName() 
-				+ "' salva com sucesso.");
-			}
-			else {
-				ControllerUtil.errorMessage(req, "Empresa '" + comp.getName()
-				+ "' não pode ser salva.");
-			}
-		} catch (ModelException e) {
-			// log no servidor
-			e.printStackTrace();
-			ControllerUtil.errorMessage(req, e.getMessage());
-		}
-	}
 	
 }

@@ -43,6 +43,7 @@
                 <table class="table table-striped table-hover" cellspacing="0" cellpadding="0">
                     <thead>
                         <tr>
+                        	<th>Id</th>
                             <th>Nome</th>
                             <th>Gerente</th>
                             <th>ID da Empresa</th>
@@ -54,6 +55,7 @@
                     <tbody>
                         <c:forEach var="department" items="${departments}">
                             <tr>
+                            	<td>${department.getId()}</td>
                                 <td>${department.getNome()}</td>
                                 <td>${department.getManager()}</td>
                                 <td>${department.getCompanyId()}</td>
@@ -109,7 +111,7 @@
             $(".modal-remove").click(function () {
                 var departmentName = $(this).attr('department-nome');
                 var departmentId = $(this).attr('department-id');
-                $(".modal-body #hiddenValue").text("o departamento '" + departmentNome + "'");
+                $(".modal-body #hiddenValue").text("o departamento '" + departmentName + "'");
                 $("#id").attr("value", departmentId);
                 $("#form").attr("action", "department/delete");
             })

@@ -14,6 +14,7 @@
 		
 		<form action="${pageContext.request.contextPath}/company/${action}" 
 			method="POST">
+			<input type="hidden" value="${company.getId()}" name="companyId">
 			
 			<div class="row">
 				<div class="form-group col-md-6">

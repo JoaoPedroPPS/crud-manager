@@ -17,7 +17,7 @@ import model.dao.CompanyDAO;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = {"/departments", "/department/form", 
-		"/department/insert", "/department/delete"})
+		"/department/insert", "/department/delete", "/department/update"})
 
 public class DepartmentsController extends HttpServlet {
 
@@ -27,12 +27,16 @@ public class DepartmentsController extends HttpServlet {
 
         switch (action) {
             case "/crud-manager/department/form": {
+            	CommonsController.listCompanies(req);
+            	req.setAttribute("action", "insert");
                 ControllerUtil.forward(req, resp, "/form-department.jsp");
                 break;
             }
             case "/crud-manager/department/update": {
+            	CommonsController.listCompanies(req);
                 Department d = loadDepartment(req);
                 req.setAttribute("department", d);
+                req.setAttribute("action", "update");
                 ControllerUtil.forward(req, resp, "/form-department.jsp");
                 break;
             }
